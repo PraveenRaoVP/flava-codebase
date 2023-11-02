@@ -1,12 +1,15 @@
 "use client"
 import * as z from "zod"
 import React from 'react'
-import { Button } from '@/components/ui/button'
+import { Link, useNavigate } from "react-router-dom"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+
+
+import { Button } from '@/components/ui/button'
 import { useToast } from "@/components/ui/use-toast"
-
-
+import { Input } from "@/components/ui/input";
+import Loader from "@/components/shared/Loader"
 import {
   Form,
   FormControl,
@@ -16,21 +19,27 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import { Input } from "@/components/ui/input";
 import { SignUpValidation } from "@/lib/validation"
-import Loader from "@/components/shared/Loader"
-import { Link, useNavigate } from "react-router-dom"
 import { useCreateUserAccountMutation, useSignInAccountMutation } from "@/lib/appwrite/react-query/queriesAndMutations"
+
 import { useUserContext } from "@/context/authContext"
 
 const SignUpForm = () => {
 
+  // toast hook
   const { toast } = useToast()
 
+  // navigation hook
   const navigate = useNavigate();
+
+  // context hooks - auth - user.
   const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
+
+  // mutation hooks - create user account and sign in. Explanation: https://react-query.tanstack.com/guides/mutations
   const { mutateAsync: createUserAccount, isPending: isCreatingAccount } = useCreateUserAccountMutation();
   const { mutateAsync: signInAccount, isPending: isSigningIn } = useSignInAccountMutation();
+  
+  // form hook - react-hook-form - zod - Explanation: https://react-hook-form.com/advanced-usage#SchemaValidation
   const form = useForm<z.infer<typeof SignUpValidation>>({
     resolver: zodResolver(SignUpValidation),
     defaultValues: {
@@ -41,10 +50,12 @@ const SignUpForm = () => {
     },
   });
 
+  // form submit handler
   const onSubmit = async (values: z.infer<typeof SignUpValidation>) => {
     //create user 
     const newUser = await createUserAccount(values);
-    // console.log(newUser);
+
+    // if user creation failed
     if (!newUser) {
       toast({
         title: "Sign Up Failed. Please try again later.",
@@ -53,6 +64,7 @@ const SignUpForm = () => {
       return;
     }
 
+    // sign in user - if user creation is successful
     const session = await signInAccount({
       email: values.email,
       password: values.password
@@ -61,6 +73,7 @@ const SignUpForm = () => {
       return toast({ title: "Something Went Wrong and Sign Up Failed. Please try again later." })
     } 
 
+    // check if user is logged in
     const isLoggedIn = await checkAuthUser();
     if(isLoggedIn) {
       form.reset();
@@ -70,7 +83,7 @@ const SignUpForm = () => {
     }
   }
 
-
+  
   return (
     <Form {...form}>
       <div className="sm:w-420 flex-center flex-col">

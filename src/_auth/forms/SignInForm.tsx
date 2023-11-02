@@ -26,11 +26,17 @@ import { useSignInAccountMutation } from "@/lib/appwrite/react-query/queriesAndM
 
 const SignInForm = () => {
 
+  // toast hook
   const { toast } = useToast()
 
+  // navigation hook
   const navigate = useNavigate();
+
+  // context hooks - auth - user. Explanation: https://react-query.tanstack.com/guides/mutations
   const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
   const { mutateAsync: signInAccount  } = useSignInAccountMutation();
+
+  // form hook - react-hook-form - zod - Explanation: https://react-hook-form.com/advanced-usage#SchemaValidation
   const form = useForm<z.infer<typeof SignInValidation>>({
     resolver: zodResolver(SignInValidation),
     defaultValues: {
