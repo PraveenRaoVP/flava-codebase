@@ -10,7 +10,7 @@ type FileUploaderProps = {
 const FileUploader = ({ fieldChange, mediaUrl } : FileUploaderProps ) => {
 
     const [file, setfile] = useState<File[]>([]);
-    const [fileUrl, setfileUrl] = useState('')
+    const [fileUrl, setfileUrl] = useState(mediaUrl)
 
     const onDrop = useCallback((acceptedFiles: FileWithPath[]) => {
         // Do something with the files
@@ -38,11 +38,11 @@ const FileUploader = ({ fieldChange, mediaUrl } : FileUploaderProps ) => {
                     </>
                 ) : (
                     <div className="file_uploader-box">
-                        <img src="/assets/icons/file-upload.svg" width={96} height={77} alt="file upload" />
+                        <img src="/assets/icons/file-upload.svg" width={96} height={77} alt="file upload" className="z-1" />
                         <h3 className="base-medium text-light-2 mb-2 mt-6">Drag Photo Here</h3>
                         <p className="text-light-4 small-regular mb-6">SVG, PNG, JPG</p>
                         <p className="base-medium small-regular mb-4 ">or</p>
-                        <Button className='shad-button_dark_4'>Select from Computer</Button>
+                        <Button className='shad-button_dark_4 z-20'>Select from Computer</Button>
                     </div>
                 )
                     

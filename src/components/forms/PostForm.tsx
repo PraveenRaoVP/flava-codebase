@@ -9,19 +9,21 @@ import { Textarea } from '../ui/textarea';
 import FileUploader from '../shared/FileUploader';
 import { PostValidation } from '@/lib/validation';
 import { Models } from 'appwrite';
-import { useCreatePost } from '@/lib/appwrite/react-query/queriesAndMutations';
+import { useCreatePost, useDeletePost, useUpdatePost } from '@/lib/appwrite/react-query/queriesAndMutations';
 import { useUserContext } from '@/context/authContext';
 import { useToast } from '../ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../shared/Loader';
 
 type PostFormProps = {
-    post?: Models.Document
+    post?: Models.Document,
+    action: "Create" | "Update"
 }
 
-const PostForm = ({ post }: PostFormProps) => {
+const PostForm = ({ action, post }: PostFormProps) => {
 
     const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
+    const { mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
 
     const { user } = useUserContext();
     const { toast } = useToast();
@@ -39,6 +41,16 @@ const PostForm = ({ post }: PostFormProps) => {
     })
     async function onSubmit(data: z.infer<typeof PostValidation>) {
         // console.log(data)
+        if(post && action === "Update"){
+            const updatedPost = await updatePost({
+                ...data, postId: post.$id, imageId: post?.imageId, imageUrl: post?.imageUrl
+            })
+
+            if(!updatedPost) {
+                toast({title: "Please Try Again."})
+            }
+            return navigate(`/posts/${post.$id}`)
+        }
         const newPost = await createPost({
             ...data,
             userId: user.id,
@@ -47,7 +59,7 @@ const PostForm = ({ post }: PostFormProps) => {
             toast({title: "Please Try Again."})
         }
         navigate("/");
-        toast({title: "Post Created Successfully."})
+        toast({title: `Post ${action}d Successfully.`})
     }
     return (
         <Form {...form}>
@@ -106,9 +118,15 @@ const PostForm = ({ post }: PostFormProps) => {
                 />
                 <div className="flex gap-4 items-center justify-end">
                     <Button type="button" className="shad-button_dark_4" onClick={() => navigate(-1)}>Cancel</Button>
-                    <Button type='submit' className="shad-button_primary whitespace-nowrap">
+                    <Button type='submit' className="shad-button_primary whitespace-nowrap"
+                    disabled={ isLoadingCreate || isLoadingUpdate }
+                    >
                         {
-                            isLoadingCreate ? <Loader /> : "Post"
+                            isLoadingCreate || isLoadingUpdate ? (
+                                <Loader />
+                            ) : (
+                                `${action} Post` 
+                            )
                         }
                     </Button>
                 </div>
