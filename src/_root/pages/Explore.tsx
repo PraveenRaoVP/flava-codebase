@@ -1,11 +1,35 @@
+import GridPostList from '@/components/shared/GridPostList';
+import Loader from '@/components/shared/Loader';
+import SearchResults from '@/components/shared/SearchResults';
 import { Input } from '@/components/ui/input'
-import React, { useState } from 'react'
+import useDebounce from '@/hooks/useDebounce';
+import { useGetPosts, useSearchPost } from '@/lib/appwrite/react-query/queriesAndMutations';
+import React, { useState, useEffect } from 'react'
+import { useInView } from 'react-intersection-observer';
 
 const Explore = () => {
+  const { ref, inView } = useInView();
+  const { data: posts, fetchNextPage, hasNextPage } = useGetPosts();
+
   const [searchValue, setSearchValue] = useState("");
+  const debouncedValue = useDebounce(searchValue, 500);
+  const { data: searchedPosts, isFetching: isSearchFetching } = useSearchPost(debouncedValue);
+
+
+  useEffect(() => {
+    if(inView && !searchValue) fetchNextPage();
+  }, [inView, searchValue])
+
+  if (!posts) {
+    return (
+      <div className="flex-center w-full h-full"><Loader /></div>
+    )
+  }
 
   const shouldShowSearchResults = searchValue !== "";
-  
+  const shouldShowPosts = !shouldShowSearchResults && posts?.pages?.every((item) => item.documents.length === 0);
+  // console.log(posts)
+
 
   return (
     <div className="explore-container">
@@ -26,8 +50,28 @@ const Explore = () => {
         </div>
       </div>
       <div className="flex flex-wrap gap-9 w-full max-w-5xl">
-
+        {
+          shouldShowSearchResults ? (
+            <SearchResults 
+              isSearchFetching={isSearchFetching}
+              searchedPosts={searchedPosts}
+            />
+          ) : shouldShowPosts ? (
+            <p className="text-light-4 mt-10 text-center w-full">End Of Posts</p>
+          ) : posts.pages.map((item, index) => (
+            <GridPostList key={`page-${index}`} posts={item.documents} />
+          ))
+        }
       </div>
+
+        {
+          hasNextPage && !searchValue && (
+            <div ref={ref} className="mt-10">
+              <Loader />
+            </div>
+          )
+        }
+
     </div>
   )
 }
