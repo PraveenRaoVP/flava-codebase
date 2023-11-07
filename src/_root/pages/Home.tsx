@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
 
-  const { data: posts, isPending: isPostLoading, isErrorPost } = useGetRecentPosts();
+  const { data: posts, isPending: isPostLoading } = useGetRecentPosts();
 
   return (
     <div className='flex flex-1'>

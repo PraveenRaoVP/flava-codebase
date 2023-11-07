@@ -2,7 +2,6 @@ import { Models } from 'appwrite'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../ui/button'
-import { useUserContext } from '@/context/authContext'
 
 type UserCardProps = {
     user: Models.Document
@@ -10,8 +9,8 @@ type UserCardProps = {
 
 const UserCard = ({ user }: UserCardProps) => {
 
-    const handleFollow = (e) => {
-        e.stopPropagation();
+    const handleFollow = () => {
+        console.log('followed')
     }
 
     return (
