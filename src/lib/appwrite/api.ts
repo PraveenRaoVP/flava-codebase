@@ -1,8 +1,9 @@
 "use client";
 
-import { INewPost, INewUser, IUpdatePost } from "@/types";
+import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 import { ID, Query } from "appwrite";
 import { account, appwriteConfig, avatars, database, storage } from "./config";
+import { errorUtil } from "node_modules/zod/lib/helpers/errorUtil";
 
 
 // function to create a new user account by calling the Appwrite API
@@ -381,3 +382,103 @@ export async function getUsers() {
         console.log(error);
     }
 }
+
+export async function getUserById(userId: string) {
+    try {
+        const user = await database.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.userCollectionId,
+            userId
+        )
+        if(!user){
+            throw Error;
+        }
+        return user;
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export async function getUserPosts(userId:string) {
+    try {
+        const posts = await database.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            [Query.equal("creator", userId), Query.orderDesc("$createdAt"), Query.limit(20)]
+        )
+        if(!posts){
+            throw Error;
+        }
+        return posts;
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export async function updateUser(user: IUpdateUser) {
+    const hasFileToUpdate = user.file.length > 0;
+
+    try {
+        let image = {
+            imageUrl: user.imageUrl,
+            imageId: user.imageId
+        };
+
+        if(hasFileToUpdate) {
+            const uploadedFile = await uploadFile(user.file[0]);
+            if(!uploadedFile) throw Error;
+    
+            const fileUrl = getFilePreview(uploadedFile.$id);
+    
+            if(!fileUrl) {
+                await deleteFile(uploadedFile.$id);
+                throw Error;
+            }
+            image = { ...image, imageUrl: fileUrl, imageId: uploadedFile.$id}
+        }
+
+        const updatedUser = await database.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.userCollectionId,
+            user.userId,
+            {
+                name: user.name,
+                bio: user.bio,
+                imageUrl: image.imageUrl,
+                imageId: image.imageId
+            }
+        );
+
+        if(!updatedUser) {
+            if(hasFileToUpdate){
+                await deleteFile(user.imageId);
+            }
+            throw Error;
+        }
+
+        if(user.imageId && hasFileToUpdate) {
+            await deleteFile(user.imageId);
+        }
+
+        return updatedUser    
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+// export async function followUser(userId1: string, userId2: string) {
+//     try {
+//         await database.createDocument(
+//             appwriteConfig.databaseId,
+//             appwriteConfig.followsCollectionId,
+//             ID.unique(),
+//             {
+//                 follower: userId1,
+//                 follows: userId2
+//             }
+//         )    
+//     } catch (error) {
+//      console.log(error)   
+//     }
+// }
+

@@ -9,6 +9,7 @@ export const appwriteConfig = {
     userCollectionId: import.meta.env.VITE_APPWRITE_COLLECTION_USERS_ID,
     postCollectionId: import.meta.env.VITE_APPWRITE_COLLECTION_POSTS_ID,
     savesCollectionId: import.meta.env.VITE_APPWRITE_COLLECTION_SAVES_ID,
+    followsCollectionId: import.meta.env.VITE_APPWRITE_COLLECTION_FOLLOWS_ID,
 }
 // console.log(appwriteConfig.url)
 // console.log(appwriteConfig.projectId)

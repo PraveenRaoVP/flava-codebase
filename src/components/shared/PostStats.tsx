@@ -41,8 +41,6 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
 
     const handleSavePost = (e: React.MouseEvent) => {
         e.stopPropagation();
-        console.log(currentUser?.save)
-        // console.log(savedPostRecord)
         if(savedPostRecord){
             setisSaved(false);
             console.log("Unsaved")
