@@ -48,7 +48,6 @@ const UpdateProfile = () => {
   }
 
   const handleUpdate = async (value: z.infer<typeof ProfileValidation>) => {
-    console.log("Pressed")
     const updatedUser = await updateUser({
       userId: currentUser.$id,
       name: value.name,
